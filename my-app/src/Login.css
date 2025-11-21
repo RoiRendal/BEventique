@@ -2,7 +2,7 @@
 .login-container {
   width: 100%;
   height: 100vh;
-  background: #f3fdf9;
+  background: #fdf6f3;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -75,7 +75,7 @@
 }
 
 .login-switch a {
-  color: #1aa56a;
+  color: #ac1f1a;
   font-weight: 600;
   cursor: pointer;
 }

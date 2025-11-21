@@ -5,6 +5,9 @@ import "./App.css";
 import Login from "./Login";
 import SignUp from "./Signup";
 import CustomerHome from "./CustomerHome";
+import DesignerHome from "./DesignerHome";
+import DesignerPackages from "./DesignerPackages";  
+
 
 function RequireAuth({ children, adminOnly = false }) {
   const raw = sessionStorage.getItem("user");
@@ -38,6 +41,7 @@ function AuthRedirect() {
 }
 
 function App() {
+
   return (
     <BrowserRouter>
       <Routes>
@@ -58,9 +62,25 @@ function App() {
           }
         />
 
-        {/* Admin/dashboard routes can be added similarly:
-          <Route path="/admin" element={<RequireAuth adminOnly><Admin /></RequireAuth>} />
-        */}
+        {/* Designer home (protected) */}
+        <Route
+          path="/designer-home"
+          element={
+            <RequireAuth>
+              <DesignerHome />
+            </RequireAuth>
+          }
+        />
+
+        {/* Designer Packages (protected) */}
+        <Route
+          path="/designer-packages"
+          element={
+            <RequireAuth>
+              <DesignerPackages />
+            </RequireAuth>
+          }
+        />
 
         {/* Fallback */}
         <Route path="*" element={<Navigate to="/" replace />} />

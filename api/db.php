@@ -24,15 +24,12 @@ foreach ($dbHosts as $cfg) {
 }
 
 if (!$pdo) {
-    // Return JSON error instead of letting PHP emit an HTML fatal page
-    header('Content-Type: application/json');
-    http_response_code(500);
-    echo json_encode([
+    // Set error flag for parent script to handle
+    $dbConnectionError = [
         "status" => "error",
         "message" => "Database connection failed. Please verify database name and credentials.",
         "detail" => $lastException ? $lastException->getMessage() : null
-    ]);
-    exit;
+    ];
 }
 
 // $pdo is available for inclusion by other scripts

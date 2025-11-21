@@ -75,6 +75,8 @@ export default function Login() {
     const role = (loggedUser?.role || loggedUser?.Role || "").toString().toLowerCase();
     if (role === "admin") {
       navigate("/admin");
+    } else if (role === "designer") {
+      navigate("/designer-home");
     } else {
       navigate("/customer-home");
     }
