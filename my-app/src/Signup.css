@@ -3,13 +3,19 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
 
 :root {
-  --bg: #f6fbf8;
-  --glass: rgba(255,255,255,0.18);
-  --glass-border: rgba(255,255,255,0.36);
-  --accent: #26bfa0;
-  --accent-2: #9fe9d0;
-  --muted: #083a31;
-  --shadow: rgba(6,55,44,0.08);
+  --p1: #a0304f; /* 160,48,79 */
+  --p2: #8d1638; /* 141,22,56 */
+  --p3: #7b0323; /* 123,3,35  */
+  --p4: #5b011b; /* 91,1,27   */
+  --p5: #3d0112; /* 61,1,18   */
+
+  --bg: linear-gradient(180deg, var(--p1), var(--p4));
+  --glass: rgba(255,255,255,0.06);
+  --glass-border: rgba(255,255,255,0.10);
+  --accent: #ffb6c7; /* light accent for controls */
+  --accent-2: #ffd6dc;
+  --muted: #ffffff;
+  --shadow: rgba(0,0,0,0.5);
 }
 
 * { box-sizing: border-box; }
@@ -17,7 +23,7 @@ html,body,#root { height: 100%; }
 body {
   margin: 0;
   font-family: 'Inter', system-ui, -apple-system, "Segoe UI", Roboto, Arial;
-  background: linear-gradient(180deg, #ffffff 0%, var(--bg) 100%);
+  background: var(--bg);
   color: var(--muted);
 }
 
@@ -47,20 +53,22 @@ body {
   max-width:560px;
   padding:28px;
   border-radius:18px;
-  background: var(--glass);
+  background: linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02));
   border: 1px solid var(--glass-border);
-  box-shadow: 0 12px 40px var(--shadow);
+  box-shadow: 0 12px 40px rgba(0,0,0,0.45);
   backdrop-filter: blur(10px) saturate(115%);
   -webkit-backdrop-filter: blur(10px) saturate(115%);
   display:flex;
   flex-direction:column;
+  /* Use dark text inside the translucent glass card for good contrast */
+  color: #111827; /* dark slate */
 }
 
 .glass-title {
   margin: 0 0 18px 0;
   font-size: 28px;
   font-weight:700;
-  color: var(--muted);
+  color: inherit;
 }
 
 /* columns for name inputs */
@@ -81,8 +89,8 @@ body {
 .form-error {
   margin-top:10px;
   padding:10px;
-  background:#fff1f2;
-  color:#7a1d1d;
+  background: rgba(255, 220, 225, 0.12);
+  color: #7a1d1d;
   border-radius:8px;
 }
 .foot-row {
@@ -92,15 +100,19 @@ body {
   align-items:center;
   gap:10px;
   font-size:13px;
-  color: rgba(8,58,46,0.8);
+  color: rgba(17,24,39,0.85);
 }
 .link-btn {
   background:none;
   border:none;
-  color:var(--accent);
+  color: var(--p2);
   font-weight:700;
   cursor:pointer;
+  text-decoration: underline;
 }
+
+.signin-link { color: rgba(17,24,39,0.95); }
+.copyright { color: rgba(17,24,39,0.6); font-size:12px; }
 
 /* right panel (image placeholder) */
 .signup-right { display:flex; align-items:center; justify-content:center; }
@@ -109,9 +121,9 @@ body {
   max-width:560px;
   min-height:520px;
   border-radius:18px;
-  background: linear-gradient(180deg, rgba(158,233,204,0.06), rgba(38,191,160,0.04));
-  border:1px solid rgba(38,191,160,0.08);
-  box-shadow: 0 18px 60px rgba(38,191,160,0.05);
+  background: linear-gradient(180deg, rgba(0,0,0,0.08), rgba(0,0,0,0.18));
+  border:1px solid rgba(255,255,255,0.04);
+  box-shadow: 0 28px 80px rgba(0,0,0,0.6);
 }
 
 /* modal */
@@ -127,15 +139,15 @@ body {
 .modal-card {
   width:100%;
   max-width:480px;
-  background: rgba(255,255,255,0.98);
+  background: rgba(0,0,0,0.68);
   border-radius:12px;
   padding:18px;
-  border:1px solid rgba(3,72,59,0.06);
-  box-shadow: 0 24px 60px rgba(16,42,67,0.12);
+  border:1px solid rgba(255,255,255,0.04);
+  box-shadow: 0 28px 80px rgba(0,0,0,0.6);
   text-align:center;
 }
 .modal-card h3 { margin:0 0 8px; font-size:20px; color:var(--muted); }
-.modal-card p { margin:0 0 12px; color:rgba(8,58,46,0.75); }
+.modal-card p { margin:0 0 12px; color: rgba(255,255,255,0.85); }
 .modal-actions { display:flex; justify-content:center; gap:12px; }
 
 /* responsive */

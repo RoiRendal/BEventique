@@ -42,13 +42,11 @@ export default function SignUp() {
     setLoading(true);
 
     try {
-      const res = await fetch("http://localhost/Eventique/api/signup.php", {
+      const res = await fetch("http://localhost:3001/api/auth/signup", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          first_name: firstName,
-          middle_initial: middleInitial,
-          last_name: lastName,
+          Full_Name: `${firstName}${middleInitial ? ` ${middleInitial}` : ''} ${lastName}`.trim(),
           email,
           password,
           phone: phone.replace(/\D/g, ""),

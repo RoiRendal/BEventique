@@ -10,7 +10,7 @@ export default function Packages() {
   };
 
   useEffect(() => {
-    fetch('/Eventique/api/packages.php', { credentials: 'include' })
+    fetch('http://localhost:3001/api/packages/list')
       .then((res) => safeJson(res))
       .then((data) => {
         setPackages(data.packages || data.data || []);

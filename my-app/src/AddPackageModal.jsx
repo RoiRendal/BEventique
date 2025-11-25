@@ -391,15 +391,14 @@ export default function AddPackageModal({ isOpen, onClose, onSaved }) {
       fd.append("NumPlatform", String(form.NumPlatform || 0));
       fd.append("Package_Amount", String(form.Package_Amount ?? ""));
       if (canvasData) {
-        fd.append("canvas_layout", JSON.stringify(canvasData));
+        fd.append("package_layout", JSON.stringify(canvasData));
       }
       files.forEach((f, i) => {
         fd.append(`photos[]`, f.file);
       });
 
-      const res = await fetch("/Eventique/api/add_package.php", {
+      const res = await fetch("http://localhost:3001/api/packages/add", {
         method: "POST",
-        credentials: "include",
         body: fd,
       });
 

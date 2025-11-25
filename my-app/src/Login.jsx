@@ -28,9 +28,8 @@ export default function Login() {
 
     setLoading(true);
     try {
-      const res = await fetch("http://localhost/Eventique/api/login.php", {
+      const res = await fetch("http://localhost:3001/api/auth/login", {
         method: "POST",
-        credentials: "include", // include cookies for PHP session
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: email.trim(), password }),
       });

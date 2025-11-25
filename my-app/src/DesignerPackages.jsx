@@ -37,15 +37,12 @@ export default function DesignerPackages() {
 		// fetch packages
 		let mounted = true;
 		setLoading(true);
-		fetch("http://localhost/Eventique/api/packages.php", { credentials: "include" })
+		fetch("http://localhost:3001/api/packages/list")
 			.then((res) => res.json())
-			.then((json) => {
+			.then((packages) => {
 				if (!mounted) return;
-				if (json.status === "success") {
-					setPackages(json.packages || []);
-				} else {
-					setError(json.message || "Failed to load packages");
-				}
+				// Node.js API returns packages array directly, not wrapped in status object
+				setPackages(Array.isArray(packages) ? packages : []);
 			})
 			.catch((err) => {
 				console.error("packages fetch error", err);
@@ -61,11 +58,11 @@ export default function DesignerPackages() {
 	// helper to refresh packages from server
 	const refreshPackages = () => {
 		setLoading(true);
-		fetch("http://localhost/Eventique/api/packages.php", { credentials: "include" })
+		fetch("http://localhost:3001/api/packages/list")
 			.then((res) => res.json())
-			.then((json) => {
-				if (json.status === "success") setPackages(json.packages || []);
-				else setError(json.message || "Failed to refresh");
+			.then((packages) => {
+				setPackages(Array.isArray(packages) ? packages : []);
+				setError("");
 			})
 			.catch((err) => setError("Network error"))
 			.finally(() => setLoading(false));
@@ -75,25 +72,20 @@ export default function DesignerPackages() {
 	const deletePackage = async (pkgId) => {
 		if (!window.confirm("Delete this package? This cannot be undone.")) return;
 		try {
-			// Attempt backend delete (adjust endpoint if different)
-			const res = await fetch("http://localhost/Eventique/api/delete_package.php", {
+			const res = await fetch("http://localhost:3001/api/packages/delete", {
 				method: "POST",
-				credentials: "include",
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify({ id: pkgId }),
 			});
-			const json = await res.json().catch(() => null);
-			if (json && json.status === "success") {
+			const json = await res.json();
+			if (json.status === "success") {
 				refreshPackages();
 			} else {
-				// If backend not available, optimistically remove from UI
-				setPackages((p) => p.filter((x) => String(x.id) !== String(pkgId)));
-				console.warn("delete_package API missing or failed, removed locally");
+				setError(json.message || "Failed to delete package");
 			}
 		} catch (err) {
 			console.error("delete package error", err);
-			// fallback: remove locally
-			setPackages((p) => p.filter((x) => String(x.id) !== String(pkgId)));
+			setError("Network error while deleting package");
 		}
 	};
 
@@ -153,33 +145,36 @@ export default function DesignerPackages() {
 									{packages.map((pkg, idx) => {
 										const photos = Array.isArray(pkg.photos) ? pkg.photos.filter(Boolean) : [];
 										const thumb = pkg.image || photos[0] || null;
-										const priceFrom = pkg.price_from ?? pkg.Package_Amount ?? pkg.price_from ?? "";
-										const priceTo = pkg.price_to ?? "";
+										const packageId = pkg.Package_ID || pkg.id;
+										const packageName = pkg.Package_Name || pkg.name || pkg.PackageName;
+										const description = pkg.Description || pkg.description || "";
+										const price = pkg.Package_Amount || pkg.price_from || "";
+										const status = pkg.Status || pkg.status || "active";
+										
 										return (
-											<tr key={pkg.id ?? idx} className={idx % 2 === 0 ? "row-even" : "row-odd"}>
+											<tr key={packageId ?? idx} className={idx % 2 === 0 ? "row-even" : "row-odd"}>
 												<td className="cell-photo">
 													{thumb ? (
-														<img src={thumb} alt={pkg.Package_Name || "thumb"} className="thumb-img" onError={(e) => e.currentTarget.src = "/assets/placeholder.png"} />
+														<img src={thumb} alt={packageName || "thumb"} className="thumb-img" onError={(e) => e.currentTarget.src = "/assets/placeholder.png"} />
 													) : (
 														<div className="no-image">No Image</div>
 													)}
 												</td>
 
-												<td className="cell-name">{pkg.Package_Name ?? pkg.name ?? pkg.PackageName}</td>
+												<td className="cell-name">{packageName}</td>
 
-												<td className="cell-desc">{pkg.description ?? ""}</td>
+												<td className="cell-desc">{description}</td>
 
 												<td className="cell-price">
-													{priceFrom ? `₱${priceFrom}` : "—"}
-													{priceTo ? ` – ₱${priceTo}` : ""}
+													{price ? `₱${price}` : "—"}
 												</td>
 
-												<td className="cell-status">{(pkg.status ?? "active").toString()}</td>
+												<td className="cell-status">{status.toString()}</td>
 
 												<td className="cell-actions">
 													<div className="actions-wrap">
-														<button className="action-btn edit" onClick={() => { setEditPackageId(pkg.id); setEditModalOpen(true); }}>Edit</button>
-														<button className="action-btn delete" onClick={() => deletePackage(pkg.id)}>Delete</button>
+														<button className="action-btn edit" onClick={() => { setEditPackageId(packageId); setEditModalOpen(true); }}>Edit</button>
+														<button className="action-btn delete" onClick={() => deletePackage(packageId)}>Delete</button>
 													</div>
 												</td>
 											</tr>
