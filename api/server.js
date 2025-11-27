@@ -7,6 +7,16 @@ const connectDB = require("./db");
 
 const app = express();
 
+// Global error handlers to prevent crashes
+process.on('uncaughtException', (err) => {
+    console.error('❌ Uncaught Exception:', err.message);
+    console.error(err.stack);
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+    console.error('❌ Unhandled Rejection at:', promise, 'reason:', reason);
+});
+
 // Middleware
 app.use(cors({
     origin: function (origin, callback) {
@@ -126,6 +136,17 @@ app.use("/uploads", express.static(__dirname + "/uploads"));
     app.use("/api/auth", require("./routes/auth"));
     app.use("/api/packages", require("./routes/packages"));
     app.use("/api/upload", require("./routes/upload"));
+    app.use("/api/design", require("./routes/design"));
+
+    // Global Express error handler
+    app.use((err, req, res, next) => {
+        console.error('❌ Express Error:', err.message);
+        console.error(err.stack);
+        res.status(500).json({ 
+            status: 'error', 
+            message: 'Internal server error: ' + err.message 
+        });
+    });
 
     const PORT = process.env.PORT || 3001;
     app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));

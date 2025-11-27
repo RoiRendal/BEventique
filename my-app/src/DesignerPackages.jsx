@@ -2,6 +2,18 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import EditPackageModal from "./EditPackageModal";
 import AddPackageModal from "./AddPackageModal";
+import { Button } from "./components/ui/button";
+import {
+	AlertDialog,
+	AlertDialogAction,
+	AlertDialogCancel,
+	AlertDialogContent,
+	AlertDialogDescription,
+	AlertDialogFooter,
+	AlertDialogHeader,
+	AlertDialogTitle,
+	AlertDialogTrigger,
+} from "./components/ui/alert-dialog";
 import "./DesignerPackages.css";
 
 export default function DesignerPackages() {
@@ -14,6 +26,20 @@ export default function DesignerPackages() {
 	const [editModalOpen, setEditModalOpen] = useState(false);
 	const [editPackageId, setEditPackageId] = useState(null);
 	const [addModalOpen, setAddModalOpen] = useState(false);
+
+	// Photo lightbox state
+	const [lightboxOpen, setLightboxOpen] = useState(false);
+	const [lightboxPhoto, setLightboxPhoto] = useState(null);
+
+	const openLightbox = (photoUrl) => {
+		setLightboxPhoto(photoUrl);
+		setLightboxOpen(true);
+	};
+
+	const closeLightbox = () => {
+		setLightboxOpen(false);
+		setLightboxPhoto(null);
+	};
 
 	useEffect(() => {
 		// Role check
@@ -70,7 +96,6 @@ export default function DesignerPackages() {
 
 	// Add deletePackage helper
 	const deletePackage = async (pkgId) => {
-		if (!window.confirm("Delete this package? This cannot be undone.")) return;
 		try {
 			const res = await fetch("http://localhost:3001/api/packages/delete", {
 				method: "POST",
@@ -95,10 +120,8 @@ export default function DesignerPackages() {
 			<aside className="dp-sidebar">
 				<div className="dp-brand">Designer — Packages</div>
 				<nav className="dp-nav">
-					<button onClick={() => navigate("/designer-home")}>Home</button>
 					<button className="active">Manage Packages</button>
-					<button onClick={() => navigate("/designer-events")}>Manage Events</button>
-					<button onClick={() => navigate("/designer-queries")}>Design Queries</button>
+					<button className="dh-nav-item" onClick={() => navigate("/design-management")}>Design Queries</button>
 				</nav>
 				<div style={{ marginTop: "auto" }}>
 					<button className="dp-logout" onClick={() => { sessionStorage.removeItem("user"); navigate("/login"); }}>
@@ -132,49 +155,64 @@ export default function DesignerPackages() {
 							<table className="dp-table">
 								<thead>
 									<tr>
-										<th className="col-photo">Photo</th>
 										<th className="col-name">Package Name</th>
 										<th className="col-desc">Description</th>
-										<th className="col-price">Price Range</th>
-										<th className="col-status">Status</th>
+										<th className="col-photos">Photos</th>
+										<th className="col-price">Price</th>
 										<th className="col-actions">Actions</th>
 									</tr>
 								</thead>
 
 								<tbody>
 									{packages.map((pkg, idx) => {
-										const photos = Array.isArray(pkg.photos) ? pkg.photos.filter(Boolean) : [];
-										const thumb = pkg.image || photos[0] || null;
 										const packageId = pkg.Package_ID || pkg.id;
 										const packageName = pkg.Package_Name || pkg.name || pkg.PackageName;
 										const description = pkg.Description || pkg.description || "";
 										const price = pkg.Package_Amount || pkg.price_from || "";
-										const status = pkg.Status || pkg.status || "active";
+										const photos = pkg.photos || [];
 										
 										return (
-											<tr key={packageId ?? idx} className={idx % 2 === 0 ? "row-even" : "row-odd"}>
-												<td className="cell-photo">
-													{thumb ? (
-														<img src={thumb} alt={packageName || "thumb"} className="thumb-img" onError={(e) => e.currentTarget.src = "/assets/placeholder.png"} />
+											<tr key={packageId ?? idx}>
+												<td className="cell-name">{packageName}</td>
+												<td className="cell-desc">{description}</td>
+												<td className="cell-photos">
+													{photos.length > 0 ? (
+														<div className="photos-wrap">
+															{photos.slice(0, 3).map((photo, i) => (
+																<img 
+																	key={i} 
+																	src={photo} 
+																	alt={`${packageName} ${i + 1}`}
+																	className="photo-thumb clickable"
+																	onClick={() => openLightbox(photo)}
+																/>
+															))}
+														</div>
 													) : (
-														<div className="no-image">No Image</div>
+														<span className="no-photos">No photos</span>
 													)}
 												</td>
-
-												<td className="cell-name">{packageName}</td>
-
-												<td className="cell-desc">{description}</td>
-
-												<td className="cell-price">
-													{price ? `₱${price}` : "—"}
-												</td>
-
-												<td className="cell-status">{status.toString()}</td>
-
+												<td className="cell-price">{price ? `₱${Number(price).toLocaleString()}` : "—"}</td>
 												<td className="cell-actions">
 													<div className="actions-wrap">
-														<button className="action-btn edit" onClick={() => { setEditPackageId(packageId); setEditModalOpen(true); }}>Edit</button>
-														<button className="action-btn delete" onClick={() => deletePackage(packageId)}>Delete</button>
+														<Button variant="default" onClick={() => { setEditPackageId(packageId); setEditModalOpen(true); }}>Edit</Button>
+														<AlertDialog>
+															<AlertDialogTrigger asChild>
+																<Button variant="outline">Delete</Button>
+															</AlertDialogTrigger>
+															<AlertDialogContent>
+																<AlertDialogHeader>
+																	<AlertDialogTitle>Delete Package</AlertDialogTitle>
+																	<AlertDialogDescription>
+																		Are you sure you want to delete "{packageName}"? This action cannot be undone and will permanently remove the package and all associated data.
+																	</AlertDialogDescription>
+																</AlertDialogHeader>
+																<AlertDialogFooter>
+																	<AlertDialogCancel>Cancel</AlertDialogCancel>
+																	<AlertDialogAction onClick={() => deletePackage(packageId)}>Delete</AlertDialogAction>
+																</AlertDialogFooter>
+															</AlertDialogContent>
+														</AlertDialog>
 													</div>
 												</td>
 											</tr>
@@ -201,6 +239,19 @@ export default function DesignerPackages() {
 				onClose={() => setAddModalOpen(false)}
 				onSaved={() => { setAddModalOpen(false); refreshPackages(); }}
 			/>
+
+			{/* Photo Lightbox */}
+			{lightboxOpen && (
+				<div className="lightbox-overlay" onClick={closeLightbox}>
+					<button className="lightbox-close" onClick={closeLightbox}>&times;</button>
+					<img 
+						src={lightboxPhoto} 
+						alt="Full size" 
+						className="lightbox-image"
+						onClick={(e) => e.stopPropagation()}
+					/>
+				</div>
+			)}
 		</div>
 	);
 }

@@ -27,6 +27,7 @@ export default function EditPackageModal({ isOpen, packageId, onClose, onSaved }
   const [form, setForm] = useState(emptyForm);
 
   const [files, setFiles] = useState([]); // array of {file, preview}
+  const [deletedPhotos, setDeletedPhotos] = useState([]); // track deleted existing photos
   const [includePlatform, setIncludePlatform] = useState(false);
   const canvasRef = useRef(null);
   const fabricCanvasRef = useRef(null);
@@ -174,6 +175,7 @@ export default function EditPackageModal({ isOpen, packageId, onClose, onSaved }
         if (f.preview && f.preview.startsWith("blob:")) URL.revokeObjectURL(f.preview);
       });
       setFiles([]);
+      setDeletedPhotos([]); // Reset deleted photos tracking
       setForm(emptyForm);
       setError("");
       if (fabricCanvasRef.current) {
@@ -193,12 +195,13 @@ export default function EditPackageModal({ isOpen, packageId, onClose, onSaved }
     // eslint-disable-next-line
   }, [isOpen]);
 
-  // Initialize Fabric canvas when modal opens
+  // Initialize Fabric canvas when modal opens and loading is complete
   useEffect(() => {
-    if (isOpen && canvasRef.current && !fabricCanvasRef.current) {
-      // Small delay to ensure container is properly rendered
-      setTimeout(() => {
-        const container = canvasRef.current?.parentElement;
+    if (isOpen && !loading && canvasRef.current && !fabricCanvasRef.current) {
+      // Small delay to ensure DOM is fully rendered after loading completes
+      const timer = setTimeout(() => {
+        if (!canvasRef.current) return;
+        const container = canvasRef.current.parentElement;
         if (!container) return;
         
         const containerWidth = container.clientWidth;
@@ -211,54 +214,30 @@ export default function EditPackageModal({ isOpen, packageId, onClose, onSaved }
           uniformScaling: true,
         });
         fabricCanvasRef.current = canvas;
-        
-        console.log("Canvas initialized:", { width: containerWidth, height: containerHeight });
 
-        // Update canvas data on any change (but avoid infinite loops during loading)
+        // Update canvas data on any change
         canvas.on('object:modified', () => {
-          if (!loading) {
-            setCanvasData(canvas.toJSON());
-            updateItemCounts();
-          }
+          setCanvasData(canvas.toJSON());
         });
         canvas.on('object:added', () => {
-          if (!loading) {
-            setCanvasData(canvas.toJSON());
-            updateItemCounts();
-          }
+          setCanvasData(canvas.toJSON());
         });
         canvas.on('object:removed', () => {
-          if (!loading) {
-            setCanvasData(canvas.toJSON());
-            updateItemCounts();
-          }
+          setCanvasData(canvas.toJSON());
         });
         
-        // Trigger canvas data loading if data is already available
-        if (canvasData && !loading) {
-          setTimeout(() => {
-            console.log("Loading existing canvas data after canvas init");
-            canvas.loadFromJSON(canvasData, () => {
-              canvas.renderAll();
-              updateItemCounts();
-            });
-          }, 100);
+        // Load existing canvas data if available
+        if (canvasData) {
+          canvas.loadFromJSON(canvasData, () => {
+            canvas.renderAll();
+            updateItemCounts();
+          });
         }
-      }, 100);
+      }, 50);
+      
+      return () => clearTimeout(timer);
     }
-  }, [isOpen, canvasData, loading, updateItemCounts]);
-
-  // Load existing canvas data when available
-  useEffect(() => {
-    if (fabricCanvasRef.current && canvasData && isOpen && !loading) {
-      console.log("Loading canvas data into fabric canvas:", canvasData);
-      fabricCanvasRef.current.loadFromJSON(canvasData, () => {
-        fabricCanvasRef.current.renderAll();
-        updateItemCounts();
-        console.log("Canvas loaded successfully");
-      });
-    }
-  }, [canvasData, isOpen, loading, updateItemCounts]);
+  }, [isOpen, loading, canvasData, updateItemCounts]);
 
   // Add objects to canvas with specified shapes and semi-transparent labels
   const addTable = () => {
@@ -292,13 +271,11 @@ export default function EditPackageModal({ isOpen, packageId, onClose, onSaved }
       hasControls: true,
       hasBorders: true,
     });
+    // ensure group handles selection (children shouldn't intercept pointer events)
+    try {
+      group.getObjects().forEach(o => o.selectable = false);
+    } catch (e) {}
     group.itemType = 'tables';
-    group.setControlsVisibility({
-      mt: false,
-      mb: false,
-      ml: false,
-      mr: false,
-    });
     fabricCanvasRef.current.add(group);
     updateItemCounts();
   };
@@ -333,13 +310,8 @@ export default function EditPackageModal({ isOpen, packageId, onClose, onSaved }
       hasControls: true,
       hasBorders: true,
     });
+    try { group.getObjects().forEach(o => o.selectable = false); } catch (e) {}
     group.itemType = 'chairs';
-    group.setControlsVisibility({
-      mt: false,
-      mb: false,
-      ml: false,
-      mr: false,
-    });
     fabricCanvasRef.current.add(group);
     updateItemCounts();
   };
@@ -375,13 +347,8 @@ export default function EditPackageModal({ isOpen, packageId, onClose, onSaved }
       hasControls: true,
       hasBorders: true,
     });
+    try { group.getObjects().forEach(o => o.selectable = false); } catch (e) {}
     group.itemType = 'tents';
-    group.setControlsVisibility({
-      mt: false,
-      mb: false,
-      ml: false,
-      mr: false,
-    });
     fabricCanvasRef.current.add(group);
     updateItemCounts();
   };
@@ -417,13 +384,8 @@ export default function EditPackageModal({ isOpen, packageId, onClose, onSaved }
       hasControls: true,
       hasBorders: true,
     });
+    try { group.getObjects().forEach(o => o.selectable = false); } catch (e) {}
     group.itemType = 'platforms';
-    group.setControlsVisibility({
-      mt: false,
-      mb: false,
-      ml: false,
-      mr: false,
-    });
     fabricCanvasRef.current.add(group);
     updateItemCounts();
   };
@@ -460,13 +422,8 @@ export default function EditPackageModal({ isOpen, packageId, onClose, onSaved }
       hasControls: true,
       hasBorders: true,
     });
+    try { group.getObjects().forEach(o => o.selectable = false); } catch (e) {}
     group.itemType = 'roundTables';
-    group.setControlsVisibility({
-      mt: false,
-      mb: false,
-      ml: false,
-      mr: false,
-    });
     fabricCanvasRef.current.add(group);
     updateItemCounts();
   };
@@ -510,6 +467,10 @@ export default function EditPackageModal({ isOpen, packageId, onClose, onSaved }
   const removePhoto = (index) => {
     setFiles(prev => {
       const item = prev[index];
+      // If it's an existing photo, track it for deletion on save
+      if (item.isExisting && item.preview) {
+        setDeletedPhotos(deleted => [...deleted, item.preview]);
+      }
       if (item.preview && item.preview.startsWith("blob:")) URL.revokeObjectURL(item.preview);
       return prev.filter((_, i) => i !== index);
     });
@@ -545,7 +506,14 @@ export default function EditPackageModal({ isOpen, packageId, onClose, onSaved }
 
             if (canvasData) {
                 fd.append("package_layout", JSON.stringify(canvasData));
-            }      // Add new photos only (not existing ones)
+            }
+
+      // Add deleted photos to be removed from server
+      if (deletedPhotos.length > 0) {
+        fd.append("deleted_photos", JSON.stringify(deletedPhotos));
+      }
+
+      // Add new photos only (not existing ones)
       const newFiles = files.filter(f => f.file && !f.isExisting);
       newFiles.forEach((f) => {
         fd.append(`photos[]`, f.file);

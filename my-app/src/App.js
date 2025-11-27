@@ -5,8 +5,9 @@ import "./App.css";
 import Login from "./Login";
 import SignUp from "./Signup";
 import CustomerHome from "./CustomerHome";
-import DesignerHome from "./DesignerHome";
-import DesignerPackages from "./DesignerPackages";  
+import CustomerPackages from "./CustomerPackages";
+import DesignerPackages from "./DesignerPackages";
+import DesignManagement from "./DesignManagement";
 
 
 function RequireAuth({ children, adminOnly = false }) {
@@ -62,12 +63,12 @@ function App() {
           }
         />
 
-        {/* Designer home (protected) */}
+        {/* Customer Packages (protected) */}
         <Route
-          path="/designer-home"
+          path="/customer-packages"
           element={
             <RequireAuth>
-              <DesignerHome />
+              <CustomerPackages />
             </RequireAuth>
           }
         />
@@ -78,6 +79,16 @@ function App() {
           element={
             <RequireAuth>
               <DesignerPackages />
+            </RequireAuth>
+          }
+        />
+
+        {/* Design Management (protected) */}
+        <Route
+          path="/design-management"
+          element={
+            <RequireAuth>
+              <DesignManagement />
             </RequireAuth>
           }
         />

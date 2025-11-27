@@ -14,24 +14,27 @@ export default function CustomerHome() {
   return (
     <div className="ch-root">
       <header className="ch-navbar">
-        <div className="ch-brand">Baby’s Eventique</div>
-
-        <nav className="ch-nav">
-          <button className="ch-link" onClick={() => navigate("/customer-home")}>Home</button>
-          <button className="ch-link" onClick={() => navigate("/themes")}>Themes</button>
-          <button className="ch-link" onClick={() => navigate("/bookings")}>Manage Bookings</button>
-          <button className="ch-link" onClick={() => navigate("/support")}>Customer Service</button>
-          <button className="ch-link" onClick={() => navigate("/faq")}>FAQ</button>
-          <div
-            className="ch-link ch-logout"
-            role="button"
-            tabIndex={0}
-            onClick={handleLogout}
-            onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") handleLogout(); }}
-          >
-            Logout
+        <div className="ch-navbar-container">
+          <div className="ch-navbar-brand">
+            <h1 className="ch-brand-title">Baby's Eventique</h1>
           </div>
-        </nav>
+
+          <nav className="ch-nav">
+            <button className="ch-link" onClick={() => navigate("/customer-home")}>HOME</button>
+            <button className="ch-link" onClick={() => navigate("/customer-packages")}>PACKAGES</button>
+            <button className="ch-link" onClick={() => navigate("/bookings")}>MANAGE BOOKINGS</button>
+            <button className="ch-link" onClick={() => navigate("/design-queries")}>DESIGN QUERIES</button>
+            <div
+              className="ch-link ch-logout"
+              role="button"
+              tabIndex={0}
+              onClick={handleLogout}
+              onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") handleLogout(); }}
+            >
+              LOGOUT
+            </div>
+          </nav>
+        </div>
       </header>
 
       <main className="ch-main">

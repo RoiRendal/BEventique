@@ -75,7 +75,7 @@ export default function Login() {
     if (role === "admin") {
       navigate("/admin");
     } else if (role === "designer") {
-      navigate("/designer-home");
+      navigate("/designer-packages");
     } else {
       navigate("/customer-home");
     }

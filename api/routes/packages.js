@@ -12,7 +12,31 @@ router.get("/list", async (req, res) => {
         const [rows] = await global.db.query(
             "SELECT * FROM package ORDER BY Package_ID DESC"
         );
-        return res.json(rows);
+        
+        // Fetch photos for each package
+        const packagesWithPhotos = await Promise.all(rows.map(async (pkg) => {
+            const [photoRows] = await global.db.query(
+                "SELECT Photo FROM package_photos WHERE Package_ID = ? ORDER BY Photo_ID ASC",
+                [pkg.Package_ID]
+            );
+            
+            // Convert old photo paths to new format
+            const convertPhotoPath = (photoPath) => {
+                if (!photoPath) return null;
+                if (photoPath.startsWith('http://')) return photoPath;
+                if (photoPath.startsWith('/Eventique/api/uploads/')) {
+                    return photoPath.replace('/Eventique/api/uploads/', 'http://localhost:3001/uploads/');
+                }
+                return photoPath;
+            };
+            
+            return {
+                ...pkg,
+                photos: photoRows.map(p => convertPhotoPath(p.Photo)).filter(Boolean)
+            };
+        }));
+        
+        return res.json(packagesWithPhotos);
     } catch (err) {
         console.error("Get package error:", err);
         return res.status(500).json({
@@ -187,9 +211,56 @@ router.post("/update", async (req, res) => {
             NumPlatform,
             Package_Amount,
             package_layout,
+            deleted_photos,
         } = req.body;
 
         let newPhotoUrls = [];
+
+        /* --------------------------------------
+           HANDLE DELETED PHOTOS
+        -----------------------------------------*/
+        if (deleted_photos) {
+            try {
+                const photosToDelete = JSON.parse(deleted_photos);
+                console.log("Photos to delete:", photosToDelete);
+                
+                for (const photoUrl of photosToDelete) {
+                    try {
+                        // Delete from database
+                        await global.db.query(
+                            "DELETE FROM package_photos WHERE Photo = ?",
+                            [photoUrl]
+                        );
+                        console.log(`Deleted from DB: ${photoUrl}`);
+                        
+                        // Delete file from disk (wrapped in its own try-catch)
+                        if (photoUrl && photoUrl.includes('/uploads/')) {
+                            try {
+                                const urlPath = photoUrl.split('/uploads/')[1];
+                                if (urlPath) {
+                                    const filePath = path.join(__dirname, "..", "uploads", urlPath);
+                                    console.log(`Attempting to delete file: ${filePath}`);
+                                    if (fs.existsSync(filePath)) {
+                                        fs.unlinkSync(filePath);
+                                        console.log(`Deleted file: ${filePath}`);
+                                    } else {
+                                        console.log(`File not found (already deleted?): ${filePath}`);
+                                    }
+                                }
+                            } catch (fileErr) {
+                                console.error(`Error deleting file: ${fileErr.message}`);
+                                // Continue - don't crash if file deletion fails
+                            }
+                        }
+                    } catch (photoErr) {
+                        console.error(`Error processing photo ${photoUrl}:`, photoErr.message);
+                        // Continue with next photo
+                    }
+                }
+            } catch (e) {
+                console.error("Error parsing deleted_photos:", e.message);
+            }
+        }
 
         /* --------------------------------------
            FILE UPLOAD HANDLING - Multiple Photos
