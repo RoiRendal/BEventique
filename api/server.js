@@ -32,7 +32,7 @@ app.use(cors({
         return callback(null, true);
     },
     credentials: true,
-    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization']
 }));
 app.use(express.json());
@@ -131,13 +131,15 @@ app.use("/uploads", express.static(__dirname + "/uploads"));
             res.json({ error: err.message });
         }
     });
-
+    
     // Routes (after DB is ready)
+    app.use("/api/admin", require("./routes/admin"));
     app.use("/api/auth", require("./routes/auth"));
+    app.use("/api/bookings", require("./routes/bookings"));
+    app.use("/api/design", require("./routes/design"));
     app.use("/api/packages", require("./routes/packages"));
     app.use("/api/upload", require("./routes/upload"));
-    app.use("/api/design", require("./routes/design"));
-
+    
     // Global Express error handler
     app.use((err, req, res, next) => {
         console.error('❌ Express Error:', err.message);

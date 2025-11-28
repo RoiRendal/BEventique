@@ -73,7 +73,7 @@ export default function Login() {
     setShowSuccess(false);
     const role = (loggedUser?.role || loggedUser?.Role || "").toString().toLowerCase();
     if (role === "admin") {
-      navigate("/admin");
+      navigate("/admin-dashboard");
     } else if (role === "designer") {
       navigate("/designer-packages");
     } else {

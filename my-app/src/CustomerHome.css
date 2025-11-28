@@ -4,7 +4,7 @@
   --accent:#26bfa0;
   --muted:#083a31;
   --card-shadow: 0 12px 40px rgba(6,55,44,0.06);
-  --navbar-bg: #9b7950;
+  --navbar-bg: #997a4a;
   --navbar-accent: #c9a96e;
 }
 *{box-sizing:border-box}
@@ -15,7 +15,7 @@ body{font-family:'Poppins', Inter, system-ui, -apple-system; margin:0; backgroun
 /* navbar */
 .ch-navbar {
   display:flex; align-items:center; justify-content:center;
-  padding:0; height:60px; background:#997a4a;
+  padding:0; height:60px; background:var(--navbar-bg);
   box-shadow: 0 8px 20px rgba(0,0,0,0.15);
 }
 

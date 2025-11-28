@@ -8,6 +8,8 @@ import CustomerHome from "./CustomerHome";
 import CustomerPackages from "./CustomerPackages";
 import DesignerPackages from "./DesignerPackages";
 import DesignManagement from "./DesignManagement";
+import BookingManagement from "./BookingManagement";
+import AdminDashboard from "./AdminDashboard";
 
 
 function RequireAuth({ children, adminOnly = false }) {
@@ -69,6 +71,27 @@ function App() {
           element={
             <RequireAuth>
               <CustomerPackages />
+            </RequireAuth>
+          }
+        />
+
+        {/* Admin Dashboard (protected) */}
+
+        <Route 
+          path="/admin-dashboard" 
+          element={
+            <RequireAuth adminOnly={true}>
+              <AdminDashboard />
+            </RequireAuth>
+          } 
+        />
+
+        {/* Booking Management (protected) */}
+        <Route
+          path="/bookings"
+          element={
+            <RequireAuth>
+              <BookingManagement />
             </RequireAuth>
           }
         />
