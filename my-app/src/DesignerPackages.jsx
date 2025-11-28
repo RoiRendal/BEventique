@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import EditPackageModal from "./EditPackageModal";
 import AddPackageModal from "./AddPackageModal";
 import { Button } from "./components/ui/button";
+import DesignerSidebar from "./DesignerSidebar";
 import {
 	AlertDialog,
 	AlertDialogAction,
@@ -15,6 +16,8 @@ import {
 	AlertDialogTrigger,
 } from "./components/ui/alert-dialog";
 import "./DesignerPackages.css";
+// Use the same sidebar styles as DesignerQueries for consistent spacing
+import "./DesignerQueries.css";
 
 export default function DesignerPackages() {
 	const navigate = useNavigate();
@@ -117,42 +120,34 @@ export default function DesignerPackages() {
 	// render: show list OR editor
 	return (
 		<div className="dp-root">
-			<aside className="dp-sidebar">
-				<div className="dp-brand">Designer — Packages</div>
-				<nav className="dp-nav">
-					<button className="active">Manage Packages</button>
-					<button className="dh-nav-item" onClick={() => navigate("/design-management")}>Design Queries</button>
-				</nav>
-				<div style={{ marginTop: "auto" }}>
-					<button className="dp-logout" onClick={() => { sessionStorage.removeItem("user"); navigate("/login"); }}>
-						Logout
-					</button>
-				</div>
-			</aside>
+			{/* Sidebar copied from DesignerQueries */}
+			<DesignerSidebar />
 
 			<main className="dp-main">
-				<header className="dp-header">
-					<div className="dp-header-top">
-						<div>
-							<h1>Manage Packages</h1>
-							<p>View and edit designer packages stored in the database.</p>
-						</div>
-						<button className="add-package-btn" onClick={() => setAddModalOpen(true)}>
-							+ Add Package
-						</button>
-					</div>
-				</header>
+				<div className="dp-messenger">
+					<div className="dp-content-wrapper">
+						<header className="dp-header">
+							<div className="dp-header-top">
+								<div>
+									<h1>Manage Packages</h1>
+									<p>View and edit designer packages stored in the database.</p>
+								</div>
+								<button className="add-package-btn" onClick={() => setAddModalOpen(true)}>
+									+ Add Package
+								</button>
+							</div>
+						</header>
 
-				<section className="dp-content">
-					{loading ? (
-						<div className="dp-loading">Loading packages...</div>
-					) : error ? (
-						<div className="dp-error">{error}</div>
-					) : packages.length === 0 ? (
-						<div className="dp-empty">No packages found.</div>
-					) : (
-						<div className="dp-table-wrap">
-							<table className="dp-table">
+						<section className="dp-content">
+							{loading ? (
+								<div className="dp-loading">Loading packages...</div>
+							) : error ? (
+								<div className="dp-error">{error}</div>
+							) : packages.length === 0 ? (
+								<div className="dp-empty">No packages found.</div>
+							) : (
+								<div className="dp-table-wrap">
+									<table className="dp-table">
 								<thead>
 									<tr>
 										<th className="col-name">Package Name</th>
@@ -219,10 +214,12 @@ export default function DesignerPackages() {
 										);
 									})}
 								</tbody>
-							</table>
-						</div>
-					)}
-				</section>
+									</table>
+								</div>
+							)}
+						</section>
+					</div>
+				</div>
 			</main>
 
 			{/* Edit Package Modal */}

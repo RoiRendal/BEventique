@@ -6,7 +6,10 @@ import Login from "./Login";
 import SignUp from "./Signup";
 import CustomerHome from "./CustomerHome";
 import CustomerPackages from "./CustomerPackages";
+import BookingPage from "./BookingPage";
+import CustomerDesignQueries from "./CustomerDesignQueries";
 import DesignerPackages from "./DesignerPackages";
+import DesignerQueries from "./DesignerQueries";
 import DesignManagement from "./DesignManagement";
 
 
@@ -73,12 +76,42 @@ function App() {
           }
         />
 
+        {/* Booking Page (protected) */}
+        <Route
+          path="/booking"
+          element={
+            <RequireAuth>
+              <BookingPage />
+            </RequireAuth>
+          }
+        />
+
+        {/* Customer Design Queries (protected) */}
+        <Route
+          path="/design-queries"
+          element={
+            <RequireAuth>
+              <CustomerDesignQueries />
+            </RequireAuth>
+          }
+        />
+
         {/* Designer Packages (protected) */}
         <Route
           path="/designer-packages"
           element={
             <RequireAuth>
               <DesignerPackages />
+            </RequireAuth>
+          }
+        />
+
+        {/* Designer Queries (protected) */}
+        <Route
+          path="/designer-queries"
+          element={
+            <RequireAuth>
+              <DesignerQueries />
             </RequireAuth>
           }
         />

@@ -10,7 +10,7 @@ const router = express.Router();
 router.get("/list", async (req, res) => {
     try {
         const [rows] = await global.db.query(
-            "SELECT * FROM package ORDER BY Package_ID DESC"
+            "SELECT Package_ID, Package_Name, Description, NumTables, NumRoundTables, NumChairs, NumTent, NumPlatform, Package_Amount, Status, package_layout FROM package ORDER BY Package_ID DESC"
         );
         
         // Fetch photos for each package

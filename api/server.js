@@ -2,10 +2,25 @@
 const express = require("express");
 const cors = require("cors");
 const fileUpload = require("express-fileupload");
+const { createServer } = require("http");
+const { Server } = require("socket.io");
 
 const connectDB = require("./db");
 
 const app = express();
+const httpServer = createServer(app);
+const io = new Server(httpServer, {
+    cors: {
+        origin: function (origin, callback) {
+            if (!origin) return callback(null, true);
+            if (origin.match(/^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/)) {
+                return callback(null, true);
+            }
+            return callback(null, true);
+        },
+        credentials: true
+    }
+});
 
 // Global error handlers to prevent crashes
 process.on('uncaughtException', (err) => {
@@ -70,6 +85,29 @@ app.use("/uploads", express.static(__dirname + "/uploads"));
     // Test route
     app.get("/api/test", (req, res) => {
         res.json({ message: "API is working!", timestamp: new Date().toISOString() });
+    });
+
+    // Lightweight health/heartbeat route (for uptime & DB ping)
+    app.get('/api/health', async (req, res) => {
+        let dbStatus = 'down';
+        try {
+            await global.db.query('SELECT 1');
+            dbStatus = 'up';
+        } catch (e) {
+            dbStatus = 'error';
+        }
+        const mem = process.memoryUsage();
+        res.json({
+            status: 'ok',
+            db: dbStatus,
+            uptime_seconds: Math.round(process.uptime()),
+            timestamp: new Date().toISOString(),
+            memory: {
+                rss: mem.rss,
+                heapTotal: mem.heapTotal,
+                heapUsed: mem.heapUsed
+            }
+        });
     });
 
     // Debug route to check database structure
@@ -137,6 +175,31 @@ app.use("/uploads", express.static(__dirname + "/uploads"));
     app.use("/api/packages", require("./routes/packages"));
     app.use("/api/upload", require("./routes/upload"));
     app.use("/api/design", require("./routes/design"));
+    app.use("/api/queries", require("./routes/queries"));
+    app.use("/api/bookings", require("./routes/bookings"));
+
+    // Socket.IO for real-time messaging
+    io.on("connection", (socket) => {
+        console.log("✅ Socket.IO client connected:", socket.id);
+
+        // Join a thread room
+        socket.on("join_thread", (threadId) => {
+            socket.join(`thread_${threadId}`);
+        });
+
+        // Leave a thread room
+        socket.on("leave_thread", (threadId) => {
+            socket.leave(`thread_${threadId}`);
+        });
+
+        // Handle disconnect
+        socket.on("disconnect", () => {
+            // Silent disconnect - normal during dev hot reload
+        });
+    });
+
+    // Make io available to routes
+    global.io = io;
 
     // Global Express error handler
     app.use((err, req, res, next) => {
@@ -149,5 +212,5 @@ app.use("/uploads", express.static(__dirname + "/uploads"));
     });
 
     const PORT = process.env.PORT || 3001;
-    app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
+    httpServer.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
 })();
