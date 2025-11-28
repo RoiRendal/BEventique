@@ -15,83 +15,111 @@ export default function CustomerPackages() {
 
   // Convert canvas layout to image when modal opens
   useEffect(() => {
-    if (modalOpen && selectedPackage && selectedPackage.package_layout) {
-      try {
-        const layoutData = typeof selectedPackage.package_layout === 'string' 
-          ? JSON.parse(selectedPackage.package_layout) 
-          : selectedPackage.package_layout;
-        
-        // If it's already a data URL, use it
-        if (typeof layoutData === 'string' && layoutData.startsWith('data:')) {
-          setCanvasImage(layoutData);
-        } else if (layoutData && typeof layoutData === 'object') {
-          // Create a temporary container for the canvas
-          const container = document.createElement('div');
-          container.style.display = 'none';
-          document.body.appendChild(container);
+    if (modalOpen && selectedPackage) {
+      console.log("Selected package:", selectedPackage);
+      console.log("Package layout field:", selectedPackage.package_layout);
+      
+      if (selectedPackage.package_layout) {
+        try {
+          const layoutData = typeof selectedPackage.package_layout === 'string' 
+            ? JSON.parse(selectedPackage.package_layout) 
+            : selectedPackage.package_layout;
           
-          // Get canvas dimensions from stored data or use defaults
-          let canvasWidth = layoutData.width || 800;
-          let canvasHeight = layoutData.height || 600;
+          console.log("Parsed layout data:", layoutData);
           
-          // If no dimensions found, calculate from objects
-          if ((!layoutData.width || !layoutData.height) && layoutData.objects && layoutData.objects.length > 0) {
-            let maxRight = 0, maxBottom = 0;
-            layoutData.objects.forEach(obj => {
-              const right = (obj.left || 0) + (obj.width || 0) * (obj.scaleX || 1);
-              const bottom = (obj.top || 0) + (obj.height || 0) * (obj.scaleY || 1);
-              maxRight = Math.max(maxRight, right);
-              maxBottom = Math.max(maxBottom, bottom);
-            });
-            canvasWidth = Math.max(canvasWidth, maxRight + 50);
-            canvasHeight = Math.max(canvasHeight, maxBottom + 50);
-          }
-          
-          const tempCanvas = document.createElement('canvas');
-          tempCanvas.width = canvasWidth;
-          tempCanvas.height = canvasHeight;
-          container.appendChild(tempCanvas);
-          
-          const fabricCanvas = new FabricCanvas(tempCanvas, {
-            width: canvasWidth,
-            height: canvasHeight,
-            renderOnAddRemove: true,
-            preserveObjectStacking: true
-          });
-          
-          fabricCanvas.loadFromJSON(layoutData, () => {
-            // Render all objects
-            fabricCanvas.renderAll();
+          if (layoutData && typeof layoutData === 'object' && layoutData.objects) {
+            console.log("Creating canvas with", layoutData.objects.length, "objects");
+            console.log("Canvas dimensions:", layoutData.width, "x", layoutData.height);
+            console.log("Background color:", layoutData.background);
             
-            // Use setTimeout to ensure rendering is complete before converting to image
-            setTimeout(() => {
-              try {
-                const dataUrl = fabricCanvas.toDataURL({
-                  format: 'png',
-                  quality: 1,
-                  multiplier: 1,
-                  left: 0,
-                  top: 0,
-                  width: canvasWidth,
-                  height: canvasHeight
-                });
-                setCanvasImage(dataUrl);
-              } catch (err) {
-                console.log("Error converting canvas to image:", err);
-              } finally {
-                fabricCanvas.dispose();
-                // Check if container is still in the DOM before removing
-                if (container && container.parentNode) {
-                  document.body.removeChild(container);
-                }
+            // Calculate canvas dimensions from objects if not specified
+            let canvasWidth = layoutData.width;
+            let canvasHeight = layoutData.height;
+            
+            if (!canvasWidth || !canvasHeight) {
+              // Calculate bounding box from all objects
+              let maxX = 0, maxY = 0;
+              layoutData.objects.forEach(obj => {
+                const objWidth = (obj.width || 0) * (obj.scaleX || 1);
+                const objHeight = (obj.height || 0) * (obj.scaleY || 1);
+                const right = (obj.left || 0) + objWidth;
+                const bottom = (obj.top || 0) + objHeight;
+                maxX = Math.max(maxX, right);
+                maxY = Math.max(maxY, bottom);
+              });
+              canvasWidth = maxX + 100; // Add padding
+              canvasHeight = maxY + 100;
+              console.log("Calculated canvas dimensions:", canvasWidth, "x", canvasHeight);
+            }
+            
+            // Create a temporary canvas element and attach to DOM
+            const tempCanvas = document.createElement('canvas');
+            const container = document.createElement('div');
+            container.style.position = 'absolute';
+            container.style.left = '-9999px';
+            container.style.top = '-9999px';
+            document.body.appendChild(container);
+            container.appendChild(tempCanvas);
+            
+            tempCanvas.width = canvasWidth;
+            tempCanvas.height = canvasHeight;
+            
+            // Create fabric canvas on the temporary element
+            const fabricCanvas = new FabricCanvas(tempCanvas, {
+              width: canvasWidth,
+              height: canvasHeight,
+              backgroundColor: layoutData.background || '#1f2937'
+            });
+            
+            // Load the layout data with proper callback handling
+            fabricCanvas.loadFromJSON(layoutData).then(() => {
+              // Set background if specified in layout
+              if (layoutData.background) {
+                fabricCanvas.backgroundColor = layoutData.background;
               }
-            }, 100);
-          });
-        } else {
+              
+              // Render and convert to image
+              fabricCanvas.renderAll();
+              
+              console.log("Canvas rendered, objects on canvas:", fabricCanvas.getObjects().length);
+              
+              // Small delay to ensure rendering is complete
+              setTimeout(() => {
+                try {
+                  const dataUrl = fabricCanvas.toDataURL({
+                    format: 'png',
+                    quality: 1
+                  });
+                  console.log("Canvas converted to image successfully, data URL length:", dataUrl.length);
+                  console.log("Data URL preview:", dataUrl.substring(0, 100));
+                  setCanvasImage(dataUrl);
+                } catch (err) {
+                  console.log("Error converting canvas:", err);
+                  setCanvasImage(null);
+                } finally {
+                  fabricCanvas.dispose();
+                  if (container && container.parentNode) {
+                    document.body.removeChild(container);
+                  }
+                }
+              }, 100);
+            }).catch((err) => {
+              console.error("Error loading canvas JSON:", err);
+              fabricCanvas.dispose();
+              if (container && container.parentNode) {
+                document.body.removeChild(container);
+              }
+            });
+          } else {
+            console.log("Layout data is invalid or has no objects");
+            setCanvasImage(null);
+          }
+        } catch (e) {
+          console.log("Could not parse canvas layout:", e);
           setCanvasImage(null);
         }
-      } catch (e) {
-        console.log("Could not parse canvas layout:", e);
+      } else {
+        console.log("No package_layout field found");
         setCanvasImage(null);
       }
     } else {
@@ -117,6 +145,7 @@ export default function CustomerPackages() {
       if (!response.ok) throw new Error("Failed to fetch packages");
       
       const data = await response.json();
+      console.log("Fetched packages:", data); // Debug log
       // API returns array directly
       setPackages(Array.isArray(data) ? data : data.packages || []);
       setError(null);
@@ -132,10 +161,6 @@ export default function CustomerPackages() {
     sessionStorage.removeItem("user");
     sessionStorage.removeItem("flash");
     navigate("/login");
-  };
-
-  const handleBookPackage = (packageId) => {
-    navigate(`/bookings/new?package=${packageId}`);
   };
 
   const handleViewDetails = (pkg) => {
@@ -255,7 +280,7 @@ export default function CustomerPackages() {
                           </button>
                           <button 
                             className="cp-book-btn"
-                            onClick={() => handleBookPackage(packageId)}
+                            onClick={() => navigate("/booking", { state: { package: pkg } })}
                           >
                             Book Now
                           </button>
@@ -370,11 +395,10 @@ export default function CustomerPackages() {
                   <button 
                     className="cp-modal-book-btn"
                     onClick={() => {
-                      closeModal();
-                      handleBookPackage(selectedPackage.Package_ID || selectedPackage.id);
+                      navigate("/booking", { state: { package: selectedPackage } });
                     }}
                   >
-                    Book This Package
+                    Book Now
                   </button>
                   <button className="cp-modal-cancel-btn" onClick={closeModal}>
                     Close

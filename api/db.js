@@ -2,7 +2,6 @@
 const mysql = require("mysql2/promise");
 
 const dbHosts = [
-    { host: "localhost", db: "eventique", user: "root", pass: "" },
     { host: "localhost", db: "eventdb",    user: "root", pass: "" }
 ];
 

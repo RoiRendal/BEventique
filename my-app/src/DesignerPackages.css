@@ -8,27 +8,46 @@
 *{box-sizing:border-box}
 body{margin:0;font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;background:var(--bg);color:var(--muted);}
 
-.dp-root{display:flex;min-height:100vh;background:#f3f4f6;}
-.dp-sidebar{width:220px;background:#fff;border-right:1px solid #e5e7eb;display:flex;flex-direction:column;padding:24px 16px;}
-.dp-brand{font-size:16px;font-weight:700;color:#1f2937;margin-bottom:32px;padding-bottom:16px;border-bottom:1px solid #e5e7eb;}
-.dp-nav{display:flex;flex-direction:column;gap:4px;}
-.dp-nav button{display:block;width:100%;text-align:left;padding:12px 16px;border-radius:8px;border:none;background:none;cursor:pointer;font-size:14px;font-weight:500;color:#374151;transition:all 0.2s;}
-.dp-nav button:hover{background:#f3f4f6;color:#111827;}
-.dp-nav .active{background:#e0f2fe;color:#0369a1;font-weight:600;}
 
-.dp-logout{margin-top:auto;padding:10px 16px;border-radius:8px;border:1px solid #e5e7eb;background:none;color:#6b7280;font-size:14px;cursor:pointer;transition:all 0.2s;width:100%;}
-.dp-logout:hover{background:#fee2e2;border-color:#fca5a5;color:#dc2626;}
+.dp-root{display:flex;min-height:100vh;background:linear-gradient(135deg, #ff6b35 0%, #f7931e 100%);}
+/* Sidebar handled by DesignerSidebar component */
 
-.dp-main{flex:1;padding:28px;overflow-y:auto;}
+.dp-main{flex:1;padding:24px;overflow-y:auto;}
+
+/* Messenger-style container matching Design Queries */
+.dp-messenger {
+  height: calc(100vh - 3rem);
+  background: white;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+  display: flex;
+  flex-direction: column;
+}
+
+.dp-content-wrapper {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
 
 /* Content container - same as Design Queries */
 .dp-content {
-  max-width: 1400px;
-  margin: 0 auto;
+  flex: 1;
+  overflow-y: auto;
+  padding: 0 24px 24px;
 }
 
 .dp-header h1{margin:0;font-size:28px;font-weight:600;color:#1f2937;}
 .dp-header p{margin:8px 0 0;color:#6b7280;font-size:14px;}
+
+/* Header adjustments for messenger layout */
+.dp-header {
+  padding: 24px 24px 16px;
+  border-bottom: 1px solid #e4e6eb;
+  background: white;
+}
 
 .dp-loading, .dp-error, .dp-empty {
   padding: 48px;
@@ -41,9 +60,9 @@ body{margin:0;font-family:-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
 /* Table wrapper - same as Design Queries */
 .dp-table-wrap {
   background: white;
-  border-radius: 12px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  border-radius: 8px;
   overflow: hidden;
+  border: 1px solid #e5e7eb;
 }
 
 /* Table - same as Design Queries */

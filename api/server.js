@@ -2,10 +2,25 @@
 const express = require("express");
 const cors = require("cors");
 const fileUpload = require("express-fileupload");
+const { createServer } = require("http");
+const { Server } = require("socket.io");
 
 const connectDB = require("./db");
 
 const app = express();
+const httpServer = createServer(app);
+const io = new Server(httpServer, {
+    cors: {
+        origin: function (origin, callback) {
+            if (!origin) return callback(null, true);
+            if (origin.match(/^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/)) {
+                return callback(null, true);
+            }
+            return callback(null, true);
+        },
+        credentials: true
+    }
+});
 
 // Global error handlers to prevent crashes
 process.on('uncaughtException', (err) => {
@@ -70,6 +85,29 @@ app.use("/uploads", express.static(__dirname + "/uploads"));
     // Test route
     app.get("/api/test", (req, res) => {
         res.json({ message: "API is working!", timestamp: new Date().toISOString() });
+    });
+
+    // Lightweight health/heartbeat route (for uptime & DB ping)
+    app.get('/api/health', async (req, res) => {
+        let dbStatus = 'down';
+        try {
+            await global.db.query('SELECT 1');
+            dbStatus = 'up';
+        } catch (e) {
+            dbStatus = 'error';
+        }
+        const mem = process.memoryUsage();
+        res.json({
+            status: 'ok',
+            db: dbStatus,
+            uptime_seconds: Math.round(process.uptime()),
+            timestamp: new Date().toISOString(),
+            memory: {
+                rss: mem.rss,
+                heapTotal: mem.heapTotal,
+                heapUsed: mem.heapUsed
+            }
+        });
     });
 
     // Debug route to check database structure
@@ -151,5 +189,5 @@ app.use("/uploads", express.static(__dirname + "/uploads"));
     });
 
     const PORT = process.env.PORT || 3001;
-    app.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
+    httpServer.listen(PORT, () => console.log(`🚀 Server running on port ${PORT}`));
 })();

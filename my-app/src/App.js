@@ -6,7 +6,10 @@ import Login from "./Login";
 import SignUp from "./Signup";
 import CustomerHome from "./CustomerHome";
 import CustomerPackages from "./CustomerPackages";
+import BookingPage from "./BookingPage";
+import CustomerDesignQueries from "./CustomerDesignQueries";
 import DesignerPackages from "./DesignerPackages";
+import DesignerQueries from "./DesignerQueries";
 import DesignManagement from "./DesignManagement";
 import BookingManagement from "./BookingManagement";
 import AdminDashboard from "./AdminDashboard";
@@ -102,6 +105,16 @@ function App() {
           element={
             <RequireAuth>
               <DesignerPackages />
+            </RequireAuth>
+          }
+        />
+
+        {/* Designer Queries (protected) */}
+        <Route
+          path="/designer-queries"
+          element={
+            <RequireAuth>
+              <DesignerQueries />
             </RequireAuth>
           }
         />
