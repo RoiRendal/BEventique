@@ -1,3 +1,0 @@
-{
-  "ignore_dirs": ["../api/uploads", "node_modules", "build"]
-}
